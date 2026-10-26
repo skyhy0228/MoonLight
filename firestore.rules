@@ -17,7 +17,7 @@ service cloud.firestore {
     function validTime(time) {
       return time in [
         '13:00', '13:15', '13:30', '13:45',
-        '14:00', '14:15', '14:30', '14:45',
+        '14:00', '14:15', '14:30',
         '15:00', '15:15', '15:30', '15:45',
         '16:00', '16:15', '16:30', '16:45'
       ];
@@ -31,7 +31,6 @@ service cloud.firestore {
         || (time == '14:00' && slotId == date + '_14-00')
         || (time == '14:15' && slotId == date + '_14-15')
         || (time == '14:30' && slotId == date + '_14-30')
-        || (time == '14:45' && slotId == date + '_14-45')
         || (time == '15:00' && slotId == date + '_15-00')
         || (time == '15:15' && slotId == date + '_15-15')
         || (time == '15:30' && slotId == date + '_15-30')
@@ -92,7 +91,9 @@ service cloud.firestore {
         && request.resource.data.paymentStatus == 'unverified'
         && relatedSlotAfter(request.resource.data.slotId).data.status == 'reserved'
         && relatedSlotAfter(request.resource.data.slotId).data.bookingId == bookingId
-        && relatedLockAfter(request.resource.data.phoneHash).data.bookingId == bookingId;
+        && relatedLockAfter(request.resource.data.phoneHash).data.bookingId == bookingId
+        && relatedLookupAfter(request.resource.data.bookingCode).data.accessKey == bookingId
+        && relatedLookupAfter(request.resource.data.bookingCode).data.ownerUid == request.auth.uid;
     }
 
     function bookingIdentityUnchanged() {
@@ -142,6 +143,10 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/representativeLocks/$(lockId));
     }
 
+    function relatedLookupAfter(bookingCode) {
+      return getAfter(/databases/$(database)/documents/bookingLookups/$(bookingCode));
+    }
+
     function userSlotUpdate(slotDocId) {
       return signedIn()
         && validSlotData(request.resource.data)
@@ -182,6 +187,19 @@ service cloud.firestore {
       allow update: if isAdmin() && validBookingData(request.resource.data);
       allow update: if userBookingUpdate();
       allow delete: if false;
+    }
+
+    match /bookingLookups/{bookingCode} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && bookingCode.matches('^GUIRO-(0929|0930)-[A-Z2-9]{5}$')
+        && request.resource.data.keys().hasOnly(['accessKey', 'ownerUid', 'createdAt'])
+        && request.resource.data.accessKey is string
+        && request.resource.data.ownerUid == request.auth.uid
+        && relatedBookingAfter(request.resource.data.accessKey).data.bookingCode == bookingCode
+        && relatedBookingAfter(request.resource.data.accessKey).data.ownerUid == request.auth.uid;
+      allow update, delete: if false;
     }
 
     match /representativeLocks/{lockId} {
