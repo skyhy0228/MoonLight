@@ -1,4 +1,4 @@
-import { Download, Lock, LogOut, Search, Unlock } from 'lucide-react';
+import { CalendarPlus, Download, Lock, LogOut, Search, Unlock } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { StatusBadge } from '../components/StatusBadge';
@@ -10,6 +10,7 @@ import {
   adminCancelBooking,
   adminMoveBooking,
   confirmPayment,
+  initializeMoonlightSlots,
   isCurrentUserAdmin,
   loginAdmin,
   logoutAdmin,
@@ -42,8 +43,8 @@ export function AdminPage() {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | PaymentStatus>('all');
   const [sortKey, setSortKey] = useState<SortKey>('time');
   const [editing, setEditing] = useState<Booking | null>(null);
-  const [editDate, setEditDate] = useState<EventDate>('2026-09-29');
-  const [editTime, setEditTime] = useState('13:00');
+  const [editDate, setEditDate] = useState<EventDate>('2026-10-28');
+  const [editTime, setEditTime] = useState('17:00');
   const [editTeamSize, setEditTeamSize] = useState(2);
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
 
@@ -109,8 +110,7 @@ export function AdminPage() {
     const confirmed = activeBookings.filter((booking) => booking.paymentStatus === 'confirmed');
     return {
       totalReserved: activeBookings.length,
-      day29: activeBookings.filter((booking) => booking.date === '2026-09-29').length,
-      day30: activeBookings.filter((booking) => booking.date === '2026-09-30').length,
+      eventDay: activeBookings.filter((booking) => booking.date === '2026-10-28').length,
       people: activeBookings.reduce((sum, booking) => sum + booking.teamSize, 0),
       expectedDeposit: activeBookings.reduce((sum, booking) => sum + booking.expectedDeposit, 0),
       confirmedDeposit: confirmed.reduce((sum, booking) => sum + booking.expectedDeposit, 0),
@@ -212,7 +212,7 @@ export function AdminPage() {
       <section className="admin-header">
         <div>
           <p className="eyebrow">관리자 대시보드</p>
-          <h1>귀로 예약 운영</h1>
+          <h1>MoonLight 예약 운영</h1>
           <p>현재 접수 상태: {settings.status === 'OPEN' ? '예약 접수 중' : '예약 마감'}</p>
         </div>
         <div className="admin-actions">
@@ -235,8 +235,7 @@ export function AdminPage() {
 
       <section className="stats-grid" aria-label="예약 현황 요약">
         <Stat label="전체 예약" value={`${stats.totalReserved} / ${slots.length}`} />
-        <Stat label="9월 29일" value={`${stats.day29} / ${slots.filter((slot) => slot.date === '2026-09-29').length}`} />
-        <Stat label="9월 30일" value={`${stats.day30} / ${slots.filter((slot) => slot.date === '2026-09-30').length}`} />
+        <Stat label="10월 28일" value={`${stats.eventDay} / ${slots.length}`} />
         <Stat label="총 예약 인원" value={`${stats.people}명`} />
         <Stat label="예상 예약금 합계" value={formatCurrency(stats.expectedDeposit)} />
         <Stat label="입금 확인 완료 금액" value={formatCurrency(stats.confirmedDeposit)} />
@@ -246,6 +245,14 @@ export function AdminPage() {
 
       <section className="lookup-panel">
         <h2>운영 슬롯 차단</h2>
+        {slots.filter((slot) => slot.clientStatusLabel == null).length < EVENT_TIMES.length && (
+          <button className="secondary-button" type="button" disabled={busy} onClick={() => void runAdminAction(async () => {
+            await initializeMoonlightSlots();
+          }, '슬롯 준비가 완료되었습니다.')}>
+            <CalendarPlus size={18} aria-hidden="true" />
+            10월 28일 슬롯 준비
+          </button>
+        )}
         <div className="admin-slot-grid">
           {slots.map((slot) => (
             <SlotAdminButton key={slot.id} slot={slot} disabled={busy} onMessage={setMessage} />
@@ -383,7 +390,7 @@ export function AdminPage() {
               <label>
                 인원
                 <select value={editTeamSize} onChange={(event) => setEditTeamSize(Number(event.target.value))}>
-                  {[2, 3, 4, 5, 6].map((size) => (
+                  {[2, 3, 4].map((size) => (
                     <option key={size} value={size}>
                       {size}명
                     </option>

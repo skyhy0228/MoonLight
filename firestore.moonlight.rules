@@ -1,0 +1,228 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function validDate(date) {
+      return date == '2026-10-28';
+    }
+
+    function validTime(time) {
+      return time in [
+        '17:00', '17:15', '17:30', '17:45',
+        '18:00', '18:15', '18:30', '18:45',
+        '19:00', '19:15', '19:30', '19:45'
+      ];
+    }
+
+    function validSlotId(slotId, date, time) {
+      return (time == '17:00' && slotId == date + '_17-00')
+        || (time == '17:15' && slotId == date + '_17-15')
+        || (time == '17:30' && slotId == date + '_17-30')
+        || (time == '17:45' && slotId == date + '_17-45')
+        || (time == '18:00' && slotId == date + '_18-00')
+        || (time == '18:15' && slotId == date + '_18-15')
+        || (time == '18:30' && slotId == date + '_18-30')
+        || (time == '18:45' && slotId == date + '_18-45')
+        || (time == '19:00' && slotId == date + '_19-00')
+        || (time == '19:15' && slotId == date + '_19-15')
+        || (time == '19:30' && slotId == date + '_19-30')
+        || (time == '19:45' && slotId == date + '_19-45');
+    }
+
+    function validSlotData(data) {
+      return data.keys().hasOnly(['date', 'time', 'status', 'bookingId', 'blockedReason', 'updatedAt'])
+        && validDate(data.date)
+        && validTime(data.time)
+        && data.status in ['available', 'reserved', 'blocked']
+        && (data.status == 'reserved' ? data.bookingId is string : data.bookingId == null)
+        && (!('blockedReason' in data) || data.blockedReason == null || data.blockedReason is string);
+    }
+
+    function validBookingData(data) {
+      return data.keys().hasOnly([
+        'accessKey', 'bookingCode', 'managementCodeHash',
+        'representativeName', 'phone', 'normalizedPhone', 'phoneHash',
+        'affiliation', 'teamSize', 'date', 'time', 'slotId',
+        'depositorName', 'expectedDeposit', 'bookingStatus', 'paymentStatus',
+        'privacyConsent', 'ownerUid', 'createdAt', 'updatedAt',
+        'cancelledAt', 'modifiedAfterConfirmation'
+      ])
+        && data.accessKey is string
+        && data.bookingCode.matches('^MOON-1028-[A-Z2-9]{5}$')
+        && data.managementCodeHash is string
+        && data.representativeName is string
+        && data.phone is string
+        && data.normalizedPhone.matches('^010[0-9]{8}$')
+        && data.phoneHash is string
+        && (!('affiliation' in data) || data.affiliation is string)
+        && data.teamSize is int
+        && data.teamSize >= 2
+        && data.teamSize <= 4
+        && validDate(data.date)
+        && validTime(data.time)
+        && validSlotId(data.slotId, data.date, data.time)
+        && data.depositorName is string
+        && data.expectedDeposit == data.teamSize * 1000
+        && data.bookingStatus in ['submitted', 'confirmed', 'cancelled']
+        && data.paymentStatus in ['unverified', 'confirmed', 'needs_review']
+        && data.privacyConsent == true
+        && data.ownerUid is string
+        && data.modifiedAfterConfirmation is bool;
+    }
+
+    function userBookingCreate(bookingId) {
+      return signedIn()
+        && bookingId == request.resource.data.accessKey
+        && validBookingData(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.bookingStatus == 'submitted'
+        && request.resource.data.paymentStatus == 'unverified'
+        && relatedSlotAfter(request.resource.data.slotId).data.status == 'reserved'
+        && relatedSlotAfter(request.resource.data.slotId).data.bookingId == bookingId
+        && relatedLockAfter(request.resource.data.phoneHash).data.bookingId == bookingId
+        && relatedLookupAfter(request.resource.data.bookingCode).data.accessKey == bookingId
+        && relatedLookupAfter(request.resource.data.bookingCode).data.ownerUid == request.auth.uid;
+    }
+
+    function bookingIdentityUnchanged() {
+      return request.resource.data.accessKey == resource.data.accessKey
+        && request.resource.data.bookingCode == resource.data.bookingCode
+        && request.resource.data.managementCodeHash == resource.data.managementCodeHash
+        && request.resource.data.representativeName == resource.data.representativeName
+        && request.resource.data.phone == resource.data.phone
+        && request.resource.data.normalizedPhone == resource.data.normalizedPhone
+        && request.resource.data.phoneHash == resource.data.phoneHash
+        && request.resource.data.depositorName == resource.data.depositorName
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.privacyConsent == resource.data.privacyConsent;
+    }
+
+    function userBookingUpdate() {
+      return signedIn()
+        && validBookingData(request.resource.data)
+        && bookingIdentityUnchanged()
+        && resource.data.bookingStatus != 'cancelled'
+        && request.resource.data.bookingStatus != 'confirmed'
+        && request.resource.data.paymentStatus != 'confirmed'
+        && (
+          (
+            request.resource.data.bookingStatus == 'cancelled'
+            && relatedSlotAfter(resource.data.slotId).data.status == 'available'
+            && relatedSlotAfter(resource.data.slotId).data.bookingId == null
+          )
+          ||
+          (
+            request.resource.data.bookingStatus != 'cancelled'
+            && relatedSlotAfter(request.resource.data.slotId).data.status == 'reserved'
+            && relatedSlotAfter(request.resource.data.slotId).data.bookingId == request.resource.data.accessKey
+          )
+        );
+    }
+
+    function relatedBookingAfter(bookingId) {
+      return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/bookings/$(bookingId));
+    }
+
+    function relatedSlotAfter(slotDocId) {
+      return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/slots/$(slotDocId));
+    }
+
+    function relatedLockAfter(lockId) {
+      return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/representativeLocks/$(lockId));
+    }
+
+    function relatedLookupAfter(bookingCode) {
+      return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/bookingLookups/$(bookingCode));
+    }
+
+    function userSlotUpdate(slotDocId) {
+      return signedIn()
+        && validSlotData(request.resource.data)
+        && validSlotData(resource.data)
+        && (
+          (
+            resource.data.status == 'available'
+            && request.resource.data.status == 'reserved'
+            && request.resource.data.bookingId is string
+            && relatedBookingAfter(request.resource.data.bookingId).data.slotId == slotDocId
+            && relatedBookingAfter(request.resource.data.bookingId).data.bookingStatus in ['submitted', 'confirmed']
+          )
+          ||
+          (
+            resource.data.status == 'reserved'
+            && request.resource.data.status == 'available'
+            && request.resource.data.bookingId == null
+            && resource.data.bookingId is string
+            && (
+              relatedBookingAfter(resource.data.bookingId).data.bookingStatus == 'cancelled'
+              || relatedBookingAfter(resource.data.bookingId).data.slotId != slotDocId
+            )
+          )
+        );
+    }
+
+    match /slots/{slotDocId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validSlotData(request.resource.data);
+      allow update: if userSlotUpdate(slotDocId);
+      allow delete: if false;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if signedIn();
+      allow list: if isAdmin();
+      allow create: if userBookingCreate(bookingId);
+      allow update: if isAdmin() && validBookingData(request.resource.data);
+      allow update: if userBookingUpdate();
+      allow delete: if false;
+    }
+
+    match /bookingLookups/{bookingCode} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && bookingCode.matches('^MOON-1028-[A-Z2-9]{5}$')
+        && request.resource.data.keys().hasOnly(['accessKey', 'ownerUid', 'createdAt'])
+        && request.resource.data.accessKey is string
+        && request.resource.data.ownerUid == request.auth.uid
+        && relatedBookingAfter(request.resource.data.accessKey).data.bookingCode == bookingCode
+        && relatedBookingAfter(request.resource.data.accessKey).data.ownerUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /representativeLocks/{lockId} {
+      allow read: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['bookingId', 'phoneHash', 'createdAt', 'updatedAt'])
+        && request.resource.data.phoneHash == lockId
+        && relatedBookingAfter(request.resource.data.bookingId).data.phoneHash == lockId
+        && relatedBookingAfter(request.resource.data.bookingId).data.bookingStatus in ['submitted', 'confirmed'];
+      allow update: if false;
+      allow delete: if signedIn()
+        && resource.data.bookingId is string
+        && relatedBookingAfter(resource.data.bookingId).data.bookingStatus == 'cancelled';
+    }
+
+    match /settings/reservation {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['status', 'updatedAt', 'updatedBy'])
+        && request.resource.data.status in ['OPEN', 'CLOSED'];
+      allow delete: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

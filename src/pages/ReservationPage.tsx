@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroImage from '../assets/guiro-hero.webp';
+import heroImage from '../assets/moonlight-poster.png';
 import { AccountBox } from '../components/AccountBox';
 import { SlotGrid } from '../components/SlotGrid';
 import { EVENT_DATES, EVENT_NAME, MAX_TEAM_SIZE, MIN_TEAM_SIZE, ORGANIZERS, PRIVACY_RETENTION_LABEL, formatKoreanDate } from '../config/event';
@@ -17,7 +17,7 @@ export function ReservationPage() {
   const { slotsByDate, error: slotError } = useSlots();
   const settings = useReservationSettings();
   const [form, setForm] = useState<BookingFormData>({
-    date: '2026-09-29',
+    date: '2026-10-28',
     time: '',
     teamSize: 2,
     representativeName: '',
@@ -70,16 +70,16 @@ export function ReservationPage() {
 
   return (
     <main className="reservation-page">
-      <section className="hero-banner" aria-label="귀로 행사 안내 이미지">
-        <img className="hero-banner-image" src={heroImage} alt="2026 스릴러파크 귀로 행사 포스터" />
+      <section className="hero-banner" aria-label="MoonLight 행사 안내 이미지">
+        <img className="hero-banner-image" src={heroImage} alt="달빛 아래 캠퍼스를 달리는 MoonLight 방탈출 행사 포스터" />
       </section>
 
       <div className="main-grid">
         <section className="event-panel">
           <p className="organizers">{ORGANIZERS}</p>
           <h1>{EVENT_NAME}</h1>
-          <p className="event-meta">2026.09.29 - 09.30 · 13:00 - 17:00 · 15분 간격 예약제</p>
-          <p className="event-meta">팀당 2~6명 · 14:45 브레이크타임</p>
+          <p className="event-meta">2026.10.28 · 17:00 - 20:00 · 15분 간격 예약제</p>
+          <p className="event-meta">팀당 2~4명 · 총 12팀 예약 가능</p>
         </section>
 
         <section className="reservation-flow" aria-label="예약 신청">
@@ -101,7 +101,7 @@ export function ReservationPage() {
                 className={form.date === date ? 'selected' : ''}
                 onClick={() => update('date', date as EventDate)}
               >
-                {date === '2026-09-29' ? '9월 29일' : '9월 30일'}
+                {formatKoreanDate(date)}
               </button>
             ))}
           </div>
@@ -186,7 +186,7 @@ export function ReservationPage() {
               </div>
             ))}
           </dl>
-          <p className="notice-strong">예약 인원 1인당 1,000원의 예약금을 입금해야 최종 예약이 완료됩니다.</p>
+          <p className="notice-strong">예약금은 1인당 1,000원이며 전액 기부합니다. 입금 확인 후 예약이 확정됩니다.</p>
           {message && <p className="error-text">{message}</p>}
           <button
             className="primary-button"
@@ -209,7 +209,7 @@ export function ReservationPage() {
       {confirming && (
         <div className="modal-backdrop" role="presentation">
           <section className="modal" role="dialog" aria-modal="true" aria-labelledby="booking-confirm-title">
-            <h2 id="booking-confirm-title">귀로 예약 내용을 확인해주세요.</h2>
+            <h2 id="booking-confirm-title">MoonLight 예약 내용을 확인해주세요.</h2>
             <dl>
               {summary.map(([label, value]) => (
                 <div key={label}>

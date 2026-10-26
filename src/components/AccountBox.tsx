@@ -6,7 +6,7 @@ import { formatCurrency } from '../utils/format';
 export function AccountBox({ teamSize, expectedDeposit }: { teamSize: number; expectedDeposit: number }) {
   return (
     <aside className="account-box">
-      <p className="notice-strong">예약 인원 1인당 1,000원의 예약금을 아래 계좌로 입금해야 최종 예약이 완료됩니다.</p>
+      <p className="notice-strong">예약금은 1인당 1,000원이며, 받은 예약금은 전액 기부합니다. 아래 계좌로 입금해주세요.</p>
       <dl>
         <div>
           <dt>예약 인원</dt>

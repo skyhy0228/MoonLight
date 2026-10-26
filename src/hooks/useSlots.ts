@@ -46,7 +46,7 @@ export function useSlots() {
         result[date] = normalizedSlots.filter((slot) => slot.date === date);
         return result;
       },
-      { '2026-09-29': [], '2026-09-30': [] },
+      { '2026-10-28': [] },
     );
   }, [normalizedSlots]);
 

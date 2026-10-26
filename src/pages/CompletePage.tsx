@@ -64,7 +64,7 @@ export function CompletePage() {
         <p className="notice-text">예약번호만으로 예약을 조회·변경·취소할 수 있으니 다른 사람에게 공유하지 마세요.</p>
         <div className="receipt-warning">
           <strong>아직 입금 확인 전입니다.</strong>
-          <p>아래 계좌로 예약금을 입금해야 최종 예약이 완료됩니다. 입금 여부는 운영진이 수동으로 확인합니다.</p>
+          <p>예약금은 전액 기부됩니다. 위 계좌로 입금하면 운영진이 확인 후 예약을 확정합니다.</p>
         </div>
         <Link className="primary-button" to="/lookup">
           내 예약 조회 / 변경 / 취소

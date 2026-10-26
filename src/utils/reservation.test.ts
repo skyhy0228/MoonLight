@@ -6,8 +6,8 @@ import type { BookingFormData } from '../types/reservation';
 import { EVENT_TIMES } from '../config/event';
 
 const validForm: BookingFormData = {
-  date: '2026-09-29',
-  time: '13:00',
+  date: '2026-10-28',
+  time: '17:00',
   teamSize: 4,
   representativeName: '홍길동',
   phone: '010-1234-5678',
@@ -19,14 +19,14 @@ const validForm: BookingFormData = {
 describe('reservation validation', () => {
   it('calculates deposit by team size', () => {
     expect(calculateDeposit(2)).toBe(2000);
-    expect(calculateDeposit(6)).toBe(6000);
+    expect(calculateDeposit(4)).toBe(4000);
   });
 
   it('rejects invalid team sizes', () => {
     expect(isValidTeamSize(1)).toBe(false);
-    expect(isValidTeamSize(7)).toBe(false);
+    expect(isValidTeamSize(5)).toBe(false);
     expect(isValidTeamSize(2)).toBe(true);
-    expect(isValidTeamSize(6)).toBe(true);
+    expect(isValidTeamSize(4)).toBe(true);
   });
 
   it('normalizes and validates Korean mobile phone numbers', () => {
@@ -41,10 +41,11 @@ describe('reservation validation', () => {
     expect(validateBookingForm({ ...validForm, privacyConsent: false })).toContain('개인정보');
   });
 
-  it('excludes the 14:45 break time from reservations', () => {
-    expect(EVENT_TIMES).toHaveLength(15);
-    expect(EVENT_TIMES).not.toContain('14:45');
-    expect(validateBookingForm({ ...validForm, time: '14:45' })).toContain('예약 시간');
+  it('offers twelve 15-minute starts through 19:45', () => {
+    expect(EVENT_TIMES).toHaveLength(12);
+    expect(EVENT_TIMES[0]).toBe('17:00');
+    expect(EVENT_TIMES.at(-1)).toBe('19:45');
+    expect(validateBookingForm({ ...validForm, time: '20:00' })).toContain('예약 시간');
   });
 });
 
@@ -60,9 +61,9 @@ describe('concurrency guard decisions', () => {
   });
 
   it('normalizes and validates the existing booking number format', () => {
-    expect(normalizeBookingCode(' guiro-0929-a7k3q ')).toBe('GUIRO-0929-A7K3Q');
-    expect(isValidBookingCode('GUIRO-0929-A7K3Q')).toBe(true);
-    expect(isValidBookingCode('GUIRO-0930-A7K3Q9RX')).toBe(false);
-    expect(isValidBookingCode('GUIRO-1001-A7K3Q')).toBe(false);
+    expect(normalizeBookingCode(' moon-1028-a7k3q ')).toBe('MOON-1028-A7K3Q');
+    expect(isValidBookingCode('MOON-1028-A7K3Q')).toBe(true);
+    expect(isValidBookingCode('MOON-1028-A7K3Q9RX')).toBe(false);
+    expect(isValidBookingCode('GUIRO-0929-A7K3Q')).toBe(false);
   });
 });

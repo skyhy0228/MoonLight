@@ -21,7 +21,7 @@ export function isValidKoreanMobile(phone: string) {
 export function validateBookingForm(data: BookingFormData) {
   if (!isEventDate(data.date)) return '예약 날짜를 선택해주세요.';
   if (!isEventTime(data.time)) return '예약 시간을 선택해주세요.';
-  if (!isValidTeamSize(data.teamSize)) return '팀 인원은 2명부터 6명까지 가능합니다.';
+  if (!isValidTeamSize(data.teamSize)) return '팀 인원은 2명부터 4명까지 가능합니다.';
   if (!data.representativeName.trim()) return '대표자 이름을 입력해주세요.';
   if (!isValidKoreanMobile(data.phone)) return '전화번호는 010-1234-5678 형식의 휴대전화 번호로 입력해주세요.';
   if (!data.depositorName.trim()) return '입금자명을 입력해주세요.';

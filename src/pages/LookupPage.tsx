@@ -15,7 +15,7 @@ export function LookupPage() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const [editDate, setEditDate] = useState<EventDate>('2026-09-29');
+  const [editDate, setEditDate] = useState<EventDate>('2026-10-28');
   const [editTime, setEditTime] = useState('');
   const [editTeamSize, setEditTeamSize] = useState(2);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -44,7 +44,7 @@ export function LookupPage() {
       return;
     }
     if (!isValidTeamSize(editTeamSize)) {
-      setMessage('팀 인원은 2명부터 6명까지 가능합니다.');
+      setMessage('팀 인원은 2명부터 4명까지 가능합니다.');
       return;
     }
     setBusy(true);
@@ -86,7 +86,7 @@ export function LookupPage() {
         <div className="form-grid">
           <label>
             예약번호
-            <input value={bookingCode} onChange={(event) => setBookingCode(event.target.value.toUpperCase())} placeholder="GUIRO-0929-A7K3Q" />
+            <input value={bookingCode} onChange={(event) => setBookingCode(event.target.value.toUpperCase())} placeholder="MOON-1028-A7K3Q" />
           </label>
         </div>
         <p className="notice-text">예약번호만 있으면 예약을 조회·변경·취소할 수 있으니 다른 사람에게 공유하지 마세요.</p>
@@ -141,7 +141,7 @@ export function LookupPage() {
                 <div className="segmented">
                   {EVENT_DATES.map((date) => (
                     <button key={date} type="button" className={editDate === date ? 'selected' : ''} onClick={() => setEditDate(date)}>
-                      {date === '2026-09-29' ? '9월 29일' : '9월 30일'}
+                      {formatKoreanDate(date)}
                     </button>
                   ))}
                 </div>
@@ -149,7 +149,7 @@ export function LookupPage() {
                 <label className="inline-label">
                   팀 인원
                   <select value={editTeamSize} onChange={(event) => setEditTeamSize(Number(event.target.value))}>
-                    {[2, 3, 4, 5, 6].map((size) => (
+                    {[2, 3, 4].map((size) => (
                       <option key={size} value={size}>
                         {size}명 · {formatCurrency(calculateDeposit(size))}
                       </option>

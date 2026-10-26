@@ -9,10 +9,11 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { auth, db } from '../firebase/app';
-import { slotId } from '../config/event';
+import { EVENT_DATES, EVENT_DOCUMENT_PATH, EVENT_TIMES, slotId } from '../config/event';
 import type { Booking, BookingStatus, EventDate, PaymentStatus, ReservationSettings, Slot } from '../types/reservation';
 import { calculateDeposit } from '../utils/format';
 import { humanizeFirebaseError } from './bookingService';
@@ -70,7 +71,7 @@ function humanizeAdminAuthError(error: unknown) {
 }
 
 export function watchAllBookings(callback: (bookings: Booking[]) => void, onError: (message: string) => void) {
-  const bookingsQuery = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
+  const bookingsQuery = query(collection(db, ...EVENT_DOCUMENT_PATH, 'bookings'), orderBy('createdAt', 'desc'));
   return onSnapshot(
     bookingsQuery,
     (snapshot) => callback(snapshot.docs.map((bookingDoc) => bookingDoc.data() as Booking)),
@@ -81,10 +82,34 @@ export function watchAllBookings(callback: (bookings: Booking[]) => void, onErro
 export async function setReservationStatus(status: ReservationSettings['status']) {
   const uid = auth.currentUser?.uid;
   await setDoc(
-    doc(db, 'settings', 'reservation'),
+    doc(db, ...EVENT_DOCUMENT_PATH, 'settings', 'reservation'),
     { status, updatedAt: serverTimestamp(), updatedBy: uid || null },
     { merge: true },
   );
+}
+
+export async function initializeMoonlightSlots() {
+  const batch = writeBatch(db);
+  let created = 0;
+
+  for (const date of EVENT_DATES) {
+    for (const time of EVENT_TIMES) {
+      const ref = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', slotId(date, time));
+      if ((await getDoc(ref)).exists()) continue;
+      batch.set(ref, {
+        date,
+        time,
+        status: 'available',
+        bookingId: null,
+        blockedReason: null,
+        updatedAt: serverTimestamp(),
+      });
+      created += 1;
+    }
+  }
+
+  await batch.commit();
+  return created;
 }
 
 export async function confirmPayment(booking: Booking) {
@@ -104,16 +129,16 @@ export async function undoPaymentConfirmation(booking: Booking) {
 }
 
 async function updateAdminBooking(accessKey: string, changes: Partial<Pick<Booking, 'paymentStatus' | 'bookingStatus' | 'modifiedAfterConfirmation'>>) {
-  await updateDoc(doc(db, 'bookings', accessKey), {
+  await updateDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', accessKey), {
     ...changes,
     updatedAt: serverTimestamp(),
   });
 }
 
 export async function adminCancelBooking(booking: Booking) {
-  const bookingRef = doc(db, 'bookings', booking.accessKey);
-  const slotRef = doc(db, 'slots', booking.slotId);
-  const lockRef = doc(db, 'representativeLocks', booking.phoneHash);
+  const bookingRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', booking.accessKey);
+  const slotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', booking.slotId);
+  const lockRef = doc(db, ...EVENT_DOCUMENT_PATH, 'representativeLocks', booking.phoneHash);
 
   await runTransaction(db, async (transaction) => {
     transaction.update(bookingRef, {
@@ -134,9 +159,9 @@ export async function adminCancelBooking(booking: Booking) {
 
 export async function adminMoveBooking(booking: Booking, nextDate: EventDate, nextTime: string, nextTeamSize: number) {
   const nextSlotId = slotId(nextDate, nextTime);
-  const bookingRef = doc(db, 'bookings', booking.accessKey);
-  const oldSlotRef = doc(db, 'slots', booking.slotId);
-  const nextSlotRef = doc(db, 'slots', nextSlotId);
+  const bookingRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', booking.accessKey);
+  const oldSlotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', booking.slotId);
+  const nextSlotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', nextSlotId);
 
   await runTransaction(db, async (transaction) => {
     if (booking.slotId !== nextSlotId) {
@@ -178,7 +203,7 @@ export async function adminMoveBooking(booking: Booking, nextDate: EventDate, ne
 
 export async function setSlotBlocked(slot: Slot, blocked: boolean, reason: string) {
   if (slot.status === 'reserved') throw new Error('이미 예약된 시간은 차단할 수 없습니다.');
-  await updateDoc(doc(db, 'slots', slot.id), {
+  await updateDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'slots', slot.id), {
     status: blocked ? 'blocked' : 'available',
     blockedReason: blocked ? reason.trim() || '운영진 차단' : null,
     bookingId: null,
@@ -194,7 +219,7 @@ function writeAudit(
   after: unknown,
 ) {
   const uid = auth.currentUser?.uid || 'unknown';
-  const auditRef = doc(collection(db, 'auditLogs'));
+  const auditRef = doc(collection(db, ...EVENT_DOCUMENT_PATH, 'auditLogs'));
   transaction.set(auditRef, {
     adminUid: uid,
     action,

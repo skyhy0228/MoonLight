@@ -13,7 +13,7 @@ import {
   type FirestoreError,
 } from 'firebase/firestore';
 import { db } from '../firebase/app';
-import { ACCOUNT, slotId } from '../config/event';
+import { ACCOUNT, EVENT_DOCUMENT_PATH, slotId } from '../config/event';
 import type { Booking, BookingFormData, BookingLookup, BookingReceipt, EventDate, ReservationSettings, Slot } from '../types/reservation';
 import {
   createAccessKey,
@@ -47,7 +47,7 @@ export function humanizeFirebaseError(error: unknown) {
 }
 
 export function watchSlots(callback: (slots: Slot[]) => void, onError: (message: string) => void) {
-  const slotsQuery = query(collection(db, 'slots'), orderBy('date'), orderBy('time'));
+  const slotsQuery = query(collection(db, ...EVENT_DOCUMENT_PATH, 'slots'), orderBy('date'), orderBy('time'));
   return onSnapshot(
     slotsQuery,
     (snapshot) => {
@@ -58,7 +58,7 @@ export function watchSlots(callback: (slots: Slot[]) => void, onError: (message:
 }
 
 export function watchReservationSettings(callback: (settings: ReservationSettings) => void) {
-  return onSnapshot(doc(db, 'settings', 'reservation'), (snapshot) => {
+  return onSnapshot(doc(db, ...EVENT_DOCUMENT_PATH, 'settings', 'reservation'), (snapshot) => {
     callback((snapshot.data() as ReservationSettings | undefined) || { status: 'OPEN' });
   });
 }
@@ -67,7 +67,7 @@ export async function createBooking(form: BookingFormData): Promise<BookingRecei
   const validationMessage = validateBookingForm(form);
   if (validationMessage) throw new Error(validationMessage);
 
-  const settingsSnap = await getDoc(doc(db, 'settings', 'reservation'));
+  const settingsSnap = await getDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'settings', 'reservation'));
   const settings = settingsSnap.data() as ReservationSettings | undefined;
   if (settings?.status === 'CLOSED') throw new Error(reservationClosedMessage);
 
@@ -79,10 +79,10 @@ export async function createBooking(form: BookingFormData): Promise<BookingRecei
   const accessKey = await createAccessKey(bookingCode, managementCode);
   const managementCodeHash = await sha256(normalizeManagementCode(managementCode));
   const selectedSlotId = slotId(form.date, form.time);
-  const bookingRef = doc(db, 'bookings', accessKey);
-  const lookupRef = doc(db, 'bookingLookups', bookingCode);
-  const slotRef = doc(db, 'slots', selectedSlotId);
-  const lockRef = doc(db, 'representativeLocks', phoneHash);
+  const bookingRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', accessKey);
+  const lookupRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookingLookups', bookingCode);
+  const slotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', selectedSlotId);
+  const lockRef = doc(db, ...EVENT_DOCUMENT_PATH, 'representativeLocks', phoneHash);
   const expectedDeposit = calculateDeposit(form.teamSize);
 
   const booking: Booking = {
@@ -155,10 +155,10 @@ export async function getBookingByCode(bookingCode: string) {
   const normalizedCode = normalizeBookingCode(bookingCode);
   if (!isValidBookingCode(normalizedCode)) throw new Error('예약번호가 올바르지 않습니다.');
 
-  const lookupSnap = await getDoc(doc(db, 'bookingLookups', normalizedCode));
+  const lookupSnap = await getDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'bookingLookups', normalizedCode));
   if (!lookupSnap.exists()) throw new Error('예약번호가 올바르지 않습니다.');
   const { accessKey } = lookupSnap.data() as BookingLookup;
-  const bookingSnap = await getDoc(doc(db, 'bookings', accessKey));
+  const bookingSnap = await getDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', accessKey));
   if (!bookingSnap.exists()) throw new Error('예약 정보를 찾을 수 없습니다. 운영진에게 문의해주세요.');
   const booking = bookingSnap.data() as Booking;
   if (booking.bookingCode !== normalizedCode) throw new Error('예약 정보를 확인할 수 없습니다. 운영진에게 문의해주세요.');
@@ -169,9 +169,9 @@ export async function changeBooking(booking: Booking, nextDate: EventDate, nextT
   if (booking.bookingStatus === 'cancelled') throw new Error('이미 취소된 예약은 변경할 수 없습니다.');
   const nextSlotId = slotId(nextDate, nextTime);
   const nextDeposit = calculateDeposit(nextTeamSize);
-  const bookingRef = doc(db, 'bookings', booking.accessKey);
-  const oldSlotRef = doc(db, 'slots', booking.slotId);
-  const nextSlotRef = doc(db, 'slots', nextSlotId);
+  const bookingRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', booking.accessKey);
+  const oldSlotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', booking.slotId);
+  const nextSlotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', nextSlotId);
   const paymentStatus = booking.paymentStatus === 'confirmed' ? 'needs_review' : booking.paymentStatus;
 
   try {
@@ -220,9 +220,9 @@ export async function changeBooking(booking: Booking, nextDate: EventDate, nextT
 
 export async function cancelBooking(booking: Booking) {
   if (booking.bookingStatus === 'cancelled') throw new Error('이미 취소된 예약입니다.');
-  const bookingRef = doc(db, 'bookings', booking.accessKey);
-  const slotRef = doc(db, 'slots', booking.slotId);
-  const lockRef = doc(db, 'representativeLocks', booking.phoneHash);
+  const bookingRef = doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', booking.accessKey);
+  const slotRef = doc(db, ...EVENT_DOCUMENT_PATH, 'slots', booking.slotId);
+  const lockRef = doc(db, ...EVENT_DOCUMENT_PATH, 'representativeLocks', booking.phoneHash);
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -254,15 +254,15 @@ export async function copyAccountToClipboard() {
 }
 
 export async function ensureDefaultReservationSettings() {
-  await setDoc(doc(db, 'settings', 'reservation'), { status: 'OPEN', updatedAt: serverTimestamp() }, { merge: true });
+  await setDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'settings', 'reservation'), { status: 'OPEN', updatedAt: serverTimestamp() }, { merge: true });
 }
 
 export async function removeBookingDocumentForLocalRepair(accessKey: string) {
-  await deleteDoc(doc(db, 'bookings', accessKey));
+  await deleteDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', accessKey));
 }
 
 export async function markBookingNeedsReview(accessKey: string) {
-  await updateDoc(doc(db, 'bookings', accessKey), {
+  await updateDoc(doc(db, ...EVENT_DOCUMENT_PATH, 'bookings', accessKey), {
     paymentStatus: 'needs_review',
     modifiedAfterConfirmation: true,
     updatedAt: serverTimestamp(),

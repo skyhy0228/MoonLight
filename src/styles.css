@@ -7,13 +7,13 @@
   font-size: 16px;
   line-height: 1.55;
   --font-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --line: #3a282b;
+  --line: #453c55;
   --text: #f4ece8;
   --muted: #b9aba7;
-  --red: #b1182d;
-  --red-strong: #e53148;
-  --gold: #d9b46a;
-  --focus: #ffcc66;
+  --red: #9c3e4d;
+  --red-strong: #d47b50;
+  --gold: #ffbd79;
+  --focus: #e8b8ff;
 }
 
 * { box-sizing: border-box; }
@@ -27,8 +27,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 25% 10%, rgba(177, 24, 45, 0.28), transparent 28rem),
-    linear-gradient(180deg, #08070a 0%, #120d10 52%, #08070a 100%);
+    radial-gradient(circle at 25% 10%, rgba(150, 61, 40, 0.18), transparent 28rem),
+    linear-gradient(180deg, #080913 0%, #16111e 52%, #090910 100%);
 }
 
 button, input, select { font: inherit; }
@@ -93,8 +93,27 @@ a { color: inherit; }
 .hero-banner-image {
   display: block;
   width: 100%;
-  height: auto;
+  max-height: 52vh;
+  object-fit: contain;
 }
+
+.setup-page {
+  min-height: 100vh;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  text-align: center;
+}
+.setup-page img {
+  display: block;
+  width: min(100%, 440px);
+  max-height: 62vh;
+  object-fit: contain;
+}
+.setup-details h1 { font-size: 2.5rem; }
+.setup-details p { margin: 0.5rem 0; }
 
 
 .main-grid, .single-column, .admin-layout {

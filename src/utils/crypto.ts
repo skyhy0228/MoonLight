@@ -8,7 +8,7 @@ function randomString(length: number) {
 
 export function createBookingCode(date: string) {
   const [, month, day] = date.split('-');
-  return `GUIRO-${month}${day}-${randomString(5)}`;
+  return `MOON-${month}${day}-${randomString(5)}`;
 }
 
 export function normalizeBookingCode(code: string) {
@@ -16,7 +16,7 @@ export function normalizeBookingCode(code: string) {
 }
 
 export function isValidBookingCode(code: string) {
-  return /^GUIRO-(0929|0930)-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
+  return /^MOON-1028-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
 }
 
 export function createManagementCode() {

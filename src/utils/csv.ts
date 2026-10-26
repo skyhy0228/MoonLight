@@ -26,7 +26,7 @@ export function downloadBookingsCsv(bookings: Booking[]) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = 'guiro-reservations.csv';
+  anchor.download = 'moonlight-reservations.csv';
   anchor.click();
   URL.revokeObjectURL(url);
 }
