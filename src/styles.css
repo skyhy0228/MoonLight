@@ -80,7 +80,8 @@ a { color: inherit; }
 
 .hero-banner {
   position: relative;
-  width: min(1180px, calc(100% - 1.5rem));
+  width: fit-content;
+  max-width: calc(100% - 1.5rem);
   margin: 1rem auto 0;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -92,7 +93,8 @@ a { color: inherit; }
 
 .hero-banner-image {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   max-height: 52vh;
   object-fit: contain;
 }
@@ -155,7 +157,7 @@ a { color: inherit; }
 }
 
 h1, h2, h3, p { overflow-wrap: anywhere; }
-h1 { margin: 0; font-size: clamp(2.6rem, 10vw, 6rem); line-height: 1; }
+h1 { margin: 0; font-size: 2.4rem; line-height: 1.12; }
 h2 { margin: 0 0 0.85rem; font-size: 1.18rem; }
 .event-meta { margin: 0.55rem 0 0; color: var(--muted); }
 .reservation-flow, .lookup-panel, .receipt-card, .admin-header { padding: 1rem; }

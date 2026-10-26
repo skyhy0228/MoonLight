@@ -53,7 +53,7 @@ export function watchSlots(callback: (slots: Slot[]) => void, onError: (message:
     (snapshot) => {
       callback(snapshot.docs.map((slotDoc) => ({ id: slotDoc.id, ...slotDoc.data() }) as Slot));
     },
-    (error) => onError(humanizeFirebaseError(error)),
+    (error) => onError(error.code === 'permission-denied' ? '예약 접수를 준비하고 있습니다. 잠시 후 다시 확인해주세요.' : humanizeFirebaseError(error)),
   );
 }
 
