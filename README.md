@@ -1,6 +1,8 @@
 # MoonLight 방탈출 예약
 
-2026년 10월 28일 17:00-20:00에 운영하는 MoonLight 방탈출 예약 웹사이트입니다. 15분 간격으로 시작하며 마지막 예약 시작은 19:45입니다. 한 시간에는 한 팀만 예약할 수 있습니다.
+2026년 10월 28일 17:00-20:00에 운영하는 MoonLight 방탈출 예약 웹사이트입니다. 15분 간격으로 시작하며 마지막 예약 시작은 19:45입니다. 한 시간대에는 한 팀만 예약할 수 있습니다.
+
+운영 주소: https://skyhy0228.github.io/MoonLight/ — Firestore 규칙과 12개 시간대가 배포되어 있습니다. 기존 귀로 접수 상태는 `CLOSED`입니다.
 
 ## 행사 정책
 
@@ -44,13 +46,12 @@ npm run build
 4. 관리자 계정의 UID가 기존 `admins/{uid}`에 등록되어 있는지 확인합니다.
 5. `Firestore Database > 규칙`에서 기존 규칙을 확인한 뒤 아래 병합 규칙을 배포합니다.
 
-`firestore.guiro.rules`는 복제 시점의 귀로 규칙이고 `firestore.moonlight.rules`는 MoonLight 전용 규칙입니다. `npm run rules:merge`는 둘을 합쳐 `firestore.rules`를 생성합니다. **귀로 규칙이 콘솔에서 나중에 변경되었다면 먼저 `firestore.guiro.rules`를 최신 규칙으로 갱신하고 병합해야 합니다.** Firestore는 프로젝트당 한 규칙 세트를 사용하므로 MoonLight 규칙만 따로 배포하면 기존 귀로 서비스가 영향을 받습니다.
+`firestore.guiro.rules`는 2026년 10월 26일 Firebase Console에 배포되어 있던 귀로 규칙이고 `firestore.moonlight.rules`는 MoonLight 전용 규칙입니다. `npm run rules:merge`는 둘을 합쳐 `firestore.rules`를 생성합니다. **콘솔 규칙이 나중에 변경되었다면 배포 전에 현재 규칙을 반영하세요.** Firestore는 프로젝트당 한 규칙 세트를 사용합니다.
 
 ```bash
 npm run rules:merge
 npx firebase-tools login
-npx firebase-tools use guiro-534c6
-npx firebase-tools deploy --only firestore:rules
+npx firebase-tools deploy --project guiro-534c6 --only firestore:rules
 ```
 
 ## 12개 슬롯 초기화
@@ -67,12 +68,12 @@ npm run init:slots
 
 스크립트는 MoonLight 경로의 없는 슬롯만 만들고 기존 문서는 수정하지 않습니다. 17:00부터 19:45까지 12개가 생성됩니다.
 
-서비스 계정이 없는 경우 병합 규칙을 배포한 뒤 관리자 화면에 로그인하여 `10월 28일 슬롯 준비` 버튼을 누를 수 있습니다. 이 버튼도 없는 슬롯만 생성합니다.
+서비스 계정이 없는 경우 관리자 화면에 로그인하여 `10월 28일 슬롯 준비` 버튼을 누를 수 있습니다. 이 버튼도 없는 슬롯만 생성합니다. 현재 12개 슬롯은 Firebase Console에서 생성되어 있으므로 추가 초기화는 필요하지 않습니다.
 
 ## GitHub Pages
 
 저장소: `skyhy0228/MoonLight`
-예상 URL: `https://skyhy0228.github.io/MoonLight/`
+URL: `https://skyhy0228.github.io/MoonLight/`
 
 `Settings > Pages > Source`를 `GitHub Actions`로 선택합니다. `Settings > Secrets and variables > Actions > Variables`에 `.env.example`의 `VITE_FIREBASE_*` 6개 웹 설정값을 같은 이름으로 입력합니다. `main`에 push하면 `.github/workflows/pages.yml`이 정적 사이트를 배포합니다.
 
@@ -81,5 +82,5 @@ npm run init:slots
 - 포스터, 날짜, 12개 슬롯, 2-4명 선택, 전액 기부 문구를 모바일과 PC에서 확인합니다.
 - 두 기기에서 같은 슬롯에 동시에 예약하여 한 건만 성공하는지 확인합니다.
 - 취소 후 슬롯이 다시 예약 가능해지는지 확인합니다.
-- `firestore.rules` 배포 후 귀로 사이트의 기존 예약 조회도 정상인지 확인합니다.
+- 기존 귀로의 `settings/reservation.status`가 `CLOSED`인지 확인합니다.
 - 일반 사용자에게 MoonLight 예약 상세 목록과 귀로 예약 상세가 내려오지 않는지 확인합니다.
