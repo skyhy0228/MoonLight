@@ -1,10 +1,10 @@
 import type { EventDate } from '../types/reservation';
 
 export const EVENT_NAME = 'MoonLight';
-export const EVENT_ID = 'moonlight-2026-10-28';
+export const EVENT_ID = 'moonlight-2026-10-29';
 export const EVENT_DOCUMENT_PATH = ['events', EVENT_ID] as const;
 export const ORGANIZERS = '국립한국교통대학교 방탈출 체험';
-export const EVENT_DATES: EventDate[] = ['2026-10-28'];
+export const EVENT_DATES: EventDate[] = ['2026-10-29'];
 export const EVENT_TIMES = [
   '17:00',
   '17:15',

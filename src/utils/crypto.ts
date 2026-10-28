@@ -16,7 +16,8 @@ export function normalizeBookingCode(code: string) {
 }
 
 export function isValidBookingCode(code: string) {
-  return /^MOON-1028-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
+  // Previously issued booking numbers remain valid after the event date correction.
+  return /^MOON-(1028|1029)-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
 }
 
 export function createManagementCode() {

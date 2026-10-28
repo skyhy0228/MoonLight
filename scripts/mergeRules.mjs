@@ -19,6 +19,6 @@ const nestedBody = moonlightBody
   .map((line) => (line ? `  ${line}` : line))
   .join('\n');
 
-const merged = `${header}${legacyBody}    match /events/moonlight-2026-10-28 {\n${nestedBody}    }\n${footer}`;
+const merged = `${header}${legacyBody}    match /events/moonlight-2026-10-29 {\n${nestedBody}    }\n${footer}`;
 writeFileSync('firestore.rules', merged);
 console.log('Merged Guiro and MoonLight Firestore rules.');

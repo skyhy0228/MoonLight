@@ -233,7 +233,7 @@ service cloud.firestore {
       allow create: if isAdmin();
       allow update, delete: if false;
     }
-    match /events/moonlight-2026-10-28 {
+    match /events/moonlight-2026-10-29 {
       function signedIn() {
         return request.auth != null;
       }
@@ -243,7 +243,7 @@ service cloud.firestore {
       }
 
       function validDate(date) {
-        return date == '2026-10-28';
+        return date == '2026-10-29';
       }
 
       function validTime(time) {
@@ -288,7 +288,7 @@ service cloud.firestore {
           'cancelledAt', 'modifiedAfterConfirmation'
         ])
           && data.accessKey is string
-          && data.bookingCode.matches('^MOON-1028-[A-Z2-9]{5}$')
+          && data.bookingCode.matches('^MOON-(1028|1029)-[A-Z2-9]{5}$')
           && data.managementCodeHash is string
           && data.representativeName is string
           && data.phone is string
@@ -314,6 +314,7 @@ service cloud.firestore {
         return signedIn()
           && bookingId == request.resource.data.accessKey
           && validBookingData(request.resource.data)
+          && request.resource.data.bookingCode.matches('^MOON-1029-[A-Z2-9]{5}$')
           && request.resource.data.ownerUid == request.auth.uid
           && request.resource.data.bookingStatus == 'submitted'
           && request.resource.data.paymentStatus == 'unverified'
@@ -360,19 +361,19 @@ service cloud.firestore {
       }
 
       function relatedBookingAfter(bookingId) {
-        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/bookings/$(bookingId));
+        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-29/bookings/$(bookingId));
       }
 
       function relatedSlotAfter(slotDocId) {
-        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/slots/$(slotDocId));
+        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-29/slots/$(slotDocId));
       }
 
       function relatedLockAfter(lockId) {
-        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/representativeLocks/$(lockId));
+        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-29/representativeLocks/$(lockId));
       }
 
       function relatedLookupAfter(bookingCode) {
-        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-28/bookingLookups/$(bookingCode));
+        return getAfter(/databases/$(database)/documents/events/moonlight-2026-10-29/bookingLookups/$(bookingCode));
       }
 
       function userSlotUpdate(slotDocId) {
@@ -421,7 +422,7 @@ service cloud.firestore {
         allow get: if signedIn();
         allow list: if false;
         allow create: if signedIn()
-          && bookingCode.matches('^MOON-1028-[A-Z2-9]{5}$')
+          && bookingCode.matches('^MOON-1029-[A-Z2-9]{5}$')
           && request.resource.data.keys().hasOnly(['accessKey', 'ownerUid', 'createdAt'])
           && request.resource.data.accessKey is string
           && request.resource.data.ownerUid == request.auth.uid
