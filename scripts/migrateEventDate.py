@@ -118,7 +118,7 @@ def validate(snapshot, date):
         if value(slot, 'date') != date or slot_id != date + '_' + value(slot, 'time').replace(':', '-'):
             raise RuntimeError('Slot date or ID is inconsistent.')
         if value(slot, 'status') == 'reserved':
-            if active.get(slot_id) != value(slot, 'bookingId'):
+            if not value(slot, 'bookingId') or active.get(slot_id) != value(slot, 'bookingId'):
                 raise RuntimeError('Reserved slot does not match an active booking.')
         elif slot_id in active:
             raise RuntimeError('An active booking points to an unreserved slot.')
@@ -196,6 +196,8 @@ def main():
         raise RuntimeError('Target event already contains data; refusing to overwrite it.')
     summary = validate(source, OLD_DATE)
     validate(migrated(source), NEW_DATE)
+    if len(fields_by_name(migrated(source))) > 500:
+        raise RuntimeError('Migration exceeds one atomic Firestore batch; review required.')
     print('Preflight passed:', json.dumps(summary), flush=True)
     if not args.apply:
         print('Dry run only. No rules or documents were changed.', flush=True)
