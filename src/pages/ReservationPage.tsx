@@ -17,7 +17,7 @@ export function ReservationPage() {
   const { slotsByDate, error: slotError } = useSlots();
   const settings = useReservationSettings();
   const [form, setForm] = useState<BookingFormData>({
-    date: '2026-10-28',
+    date: '2026-10-29',
     time: '',
     teamSize: 2,
     representativeName: '',
@@ -78,7 +78,7 @@ export function ReservationPage() {
         <section className="event-panel">
           <p className="organizers">{ORGANIZERS}</p>
           <h1>{EVENT_NAME}</h1>
-          <p className="event-meta">2026.10.28 · 17:00 - 20:00 · 15분 간격 예약제</p>
+          <p className="event-meta">2026.10.29 · 17:00 - 20:00 · 15분 간격 예약제</p>
           <p className="event-meta">팀당 2~4명 · 총 12팀 예약 가능</p>
         </section>
 

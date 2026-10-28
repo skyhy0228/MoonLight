@@ -1,6 +1,6 @@
 import type { Timestamp } from 'firebase/firestore';
 
-export type EventDate = '2026-10-28';
+export type EventDate = '2026-10-29';
 export type SlotStatus = 'available' | 'reserved' | 'blocked';
 export type BookingStatus = 'submitted' | 'confirmed' | 'cancelled';
 export type PaymentStatus = 'unverified' | 'confirmed' | 'needs_review';

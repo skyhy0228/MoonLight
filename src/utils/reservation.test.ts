@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { canCreateBooking, isValidBookingCode, normalizeBookingCode, normalizeManagementCode } from './crypto';
+import { canCreateBooking, createBookingCode, isValidBookingCode, normalizeBookingCode, normalizeManagementCode } from './crypto';
 import { calculateDeposit, formatPhone, normalizePhone } from './format';
-import { isValidKoreanMobile, isValidTeamSize, validateBookingForm } from './validation';
+import { isEventDate, isValidKoreanMobile, isValidTeamSize, validateBookingForm } from './validation';
 import type { BookingFormData } from '../types/reservation';
-import { EVENT_TIMES } from '../config/event';
+import { EVENT_DATES, EVENT_TIMES } from '../config/event';
 
 const validForm: BookingFormData = {
-  date: '2026-10-28',
+  date: '2026-10-29',
   time: '17:00',
   teamSize: 4,
   representativeName: '홍길동',
@@ -17,6 +17,13 @@ const validForm: BookingFormData = {
 };
 
 describe('reservation validation', () => {
+  it('accepts October 29 and rejects the incorrect event day', () => {
+    expect(EVENT_DATES).toEqual(['2026-10-29']);
+    expect(isEventDate('2026-10-29')).toBe(true);
+    expect(isEventDate('2026-10-28')).toBe(false);
+    expect(createBookingCode(validForm.date)).toMatch(/^MOON-1029-[A-Z2-9]{5}$/);
+  });
+
   it('calculates deposit by team size', () => {
     expect(calculateDeposit(2)).toBe(2000);
     expect(calculateDeposit(4)).toBe(4000);
@@ -61,9 +68,9 @@ describe('concurrency guard decisions', () => {
   });
 
   it('normalizes and validates the existing booking number format', () => {
-    expect(normalizeBookingCode(' moon-1028-a7k3q ')).toBe('MOON-1028-A7K3Q');
-    expect(isValidBookingCode('MOON-1028-A7K3Q')).toBe(true);
-    expect(isValidBookingCode('MOON-1028-A7K3Q9RX')).toBe(false);
+    expect(normalizeBookingCode(' moon-1029-a7k3q ')).toBe('MOON-1029-A7K3Q');
+    expect(isValidBookingCode('MOON-1029-A7K3Q')).toBe(true);
+    expect(isValidBookingCode('MOON-1029-A7K3Q9RX')).toBe(false);
     expect(isValidBookingCode('GUIRO-0929-A7K3Q')).toBe(false);
   });
 });

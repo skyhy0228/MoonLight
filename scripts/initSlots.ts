@@ -1,7 +1,7 @@
 import { applicationDefault, getApps, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
-const dates = ['2026-10-28'] as const;
+const dates = ['2026-10-29'] as const;
 const bookableTimes = [
   '17:00',
   '17:15',
@@ -38,7 +38,7 @@ async function main() {
   let created = 0;
   for (const date of dates) {
     for (const time of bookableTimes) {
-      const ref = db.collection('events').doc('moonlight-2026-10-28').collection('slots').doc(makeSlotId(date, time));
+      const ref = db.collection('events').doc('moonlight-2026-10-29').collection('slots').doc(makeSlotId(date, time));
       const snap = await ref.get();
       if (snap.exists) continue;
 
@@ -55,7 +55,7 @@ async function main() {
   }
 
   batch.set(
-    db.collection('events').doc('moonlight-2026-10-28').collection('settings').doc('reservation'),
+    db.collection('events').doc('moonlight-2026-10-29').collection('settings').doc('reservation'),
     {
       status: 'OPEN',
       updatedAt: FieldValue.serverTimestamp(),

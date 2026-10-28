@@ -16,7 +16,7 @@ export function normalizeBookingCode(code: string) {
 }
 
 export function isValidBookingCode(code: string) {
-  return /^MOON-1028-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
+  return /^MOON-1029-[A-Z2-9]{5}$/.test(normalizeBookingCode(code));
 }
 
 export function createManagementCode() {

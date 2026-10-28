@@ -43,7 +43,7 @@ export function AdminPage() {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | PaymentStatus>('all');
   const [sortKey, setSortKey] = useState<SortKey>('time');
   const [editing, setEditing] = useState<Booking | null>(null);
-  const [editDate, setEditDate] = useState<EventDate>('2026-10-28');
+  const [editDate, setEditDate] = useState<EventDate>('2026-10-29');
   const [editTime, setEditTime] = useState('17:00');
   const [editTeamSize, setEditTeamSize] = useState(2);
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
@@ -110,7 +110,7 @@ export function AdminPage() {
     const confirmed = activeBookings.filter((booking) => booking.paymentStatus === 'confirmed');
     return {
       totalReserved: activeBookings.length,
-      eventDay: activeBookings.filter((booking) => booking.date === '2026-10-28').length,
+      eventDay: activeBookings.filter((booking) => booking.date === '2026-10-29').length,
       people: activeBookings.reduce((sum, booking) => sum + booking.teamSize, 0),
       expectedDeposit: activeBookings.reduce((sum, booking) => sum + booking.expectedDeposit, 0),
       confirmedDeposit: confirmed.reduce((sum, booking) => sum + booking.expectedDeposit, 0),
@@ -235,7 +235,7 @@ export function AdminPage() {
 
       <section className="stats-grid" aria-label="예약 현황 요약">
         <Stat label="전체 예약" value={`${stats.totalReserved} / ${slots.length}`} />
-        <Stat label="10월 28일" value={`${stats.eventDay} / ${slots.length}`} />
+        <Stat label="10월 29일" value={`${stats.eventDay} / ${slots.length}`} />
         <Stat label="총 예약 인원" value={`${stats.people}명`} />
         <Stat label="예상 예약금 합계" value={formatCurrency(stats.expectedDeposit)} />
         <Stat label="입금 확인 완료 금액" value={formatCurrency(stats.confirmedDeposit)} />
@@ -250,7 +250,7 @@ export function AdminPage() {
             await initializeMoonlightSlots();
           }, '슬롯 준비가 완료되었습니다.')}>
             <CalendarPlus size={18} aria-hidden="true" />
-            10월 28일 슬롯 준비
+            10월 29일 슬롯 준비
           </button>
         )}
         <div className="admin-slot-grid">

@@ -15,7 +15,7 @@ export function LookupPage() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const [editDate, setEditDate] = useState<EventDate>('2026-10-28');
+  const [editDate, setEditDate] = useState<EventDate>('2026-10-29');
   const [editTime, setEditTime] = useState('');
   const [editTeamSize, setEditTeamSize] = useState(2);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -86,7 +86,7 @@ export function LookupPage() {
         <div className="form-grid">
           <label>
             예약번호
-            <input value={bookingCode} onChange={(event) => setBookingCode(event.target.value.toUpperCase())} placeholder="MOON-1028-A7K3Q" />
+            <input value={bookingCode} onChange={(event) => setBookingCode(event.target.value.toUpperCase())} placeholder="MOON-1029-A7K3Q" />
           </label>
         </div>
         <p className="notice-text">예약번호만 있으면 예약을 조회·변경·취소할 수 있으니 다른 사람에게 공유하지 마세요.</p>

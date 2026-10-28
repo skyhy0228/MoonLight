@@ -1,28 +1,28 @@
 # MoonLight 방탈출 예약
 
-2026년 10월 28일 17:00-20:00에 운영하는 MoonLight 방탈출 예약 웹사이트입니다. 15분 간격으로 시작하며 마지막 예약 시작은 19:45입니다. 한 시간대에는 한 팀만 예약할 수 있습니다.
+2026년 10월 29일 17:00-20:00에 운영하는 MoonLight 방탈출 예약 웹사이트입니다. 15분 간격으로 시작하며 마지막 예약 시작은 19:45입니다. 한 시간대에는 한 팀만 예약할 수 있습니다.
 
-운영 주소: https://skyhy0228.github.io/MoonLight/ — Firestore 규칙과 12개 시간대가 배포되어 있습니다. 기존 귀로 접수 상태는 `CLOSED`입니다.
+운영 주소: https://skyhy0228.github.io/MoonLight/. 날짜 변경을 운영에 반영할 때는 아래 배포 순서를 따릅니다. 기존 귀로 접수 상태는 `CLOSED`입니다.
 
 ## 행사 정책
 
 - 팀당 2-4명
 - 1인당 예약금 1,000원, 예약금 전액 기부
 - 농협 351-0966-6520-73, 이호열
-- 사용자 예약번호 형식: `MOON-1028-XXXXX`
+- 사용자 예약번호 형식: `MOON-1029-XXXXX`
 
 ## 데이터 분리
 
-기존 Firebase 프로젝트 `guiro-534c6`를 공유하지만 MoonLight 데이터는 모두 `events/moonlight-2026-10-28` 문서의 하위 컬렉션에 저장합니다.
+기존 Firebase 프로젝트 `guiro-534c6`를 공유하지만 MoonLight 데이터는 모두 `events/moonlight-2026-10-29` 문서의 하위 컬렉션에 저장합니다.
 
 | MoonLight 경로 | 용도 |
 | --- | --- |
-| `events/moonlight-2026-10-28/slots/{slotId}` | 공개 예약 현황, 개인정보 없음 |
-| `events/moonlight-2026-10-28/bookings/{id}` | 예약 상세 |
-| `events/moonlight-2026-10-28/bookingLookups/{code}` | 예약번호 조회 |
-| `events/moonlight-2026-10-28/representativeLocks/{phoneHash}` | 대표자 중복 예약 방지 |
-| `events/moonlight-2026-10-28/settings/reservation` | 접수 상태 |
-| `events/moonlight-2026-10-28/auditLogs/{id}` | 관리자 조작 기록 |
+| `events/moonlight-2026-10-29/slots/{slotId}` | 공개 예약 현황, 개인정보 없음 |
+| `events/moonlight-2026-10-29/bookings/{id}` | 예약 상세 |
+| `events/moonlight-2026-10-29/bookingLookups/{code}` | 예약번호 조회 |
+| `events/moonlight-2026-10-29/representativeLocks/{phoneHash}` | 대표자 중복 예약 방지 |
+| `events/moonlight-2026-10-29/settings/reservation` | 접수 상태 |
+| `events/moonlight-2026-10-29/auditLogs/{id}` | 관리자 조작 기록 |
 
 기존 귀로 데이터는 루트 `slots`, `bookings` 등의 경로를 그대로 사용합니다. Firebase Authentication의 관리자 계정과 루트 `admins/{uid}` 권한 문서는 공유합니다.
 
@@ -68,7 +68,14 @@ npm run init:slots
 
 스크립트는 MoonLight 경로의 없는 슬롯만 만들고 기존 문서는 수정하지 않습니다. 17:00부터 19:45까지 12개가 생성됩니다.
 
-서비스 계정이 없는 경우 관리자 화면에 로그인하여 `10월 28일 슬롯 준비` 버튼을 누를 수 있습니다. 이 버튼도 없는 슬롯만 생성합니다. 현재 12개 슬롯은 Firebase Console에서 생성되어 있으므로 추가 초기화는 필요하지 않습니다.
+서비스 계정이 없는 경우 관리자 화면에 로그인하여 `10월 29일 슬롯 준비` 버튼을 누를 수 있습니다. 이 버튼도 없는 슬롯만 생성합니다. 이전 날짜 경로의 슬롯은 새 경로로 자동 이동되지 않으므로 29일 경로의 12개 슬롯을 확인해야 합니다.
+
+## 날짜 변경 배포 순서
+
+1. 기존 행사 경로에 예약이 있는지 확인하고 데이터를 백업합니다. 기존 예약이 있다면 날짜, 슬롯 ID, 예약번호와 조회 문서, 대표자 잠금 및 접수 설정을 함께 이관해야 합니다. 기존 예약의 조회 방법도 확인한 뒤 전환합니다.
+2. 현재 운영 중인 귀로 규칙을 보존하면서 수정한 MoonLight 규칙을 병합하여 배포합니다.
+3. 29일 행사 경로에 12개 슬롯을 준비하고 기존 예약 및 차단 상태, 접수 상태가 반영되었는지 확인합니다. `init:slots`는 기존 예약을 이관하지 않으므로 예약 확인 없이 새 슬롯을 열지 않습니다.
+4. 준비가 끝난 뒤 `main`에 반영하여 GitHub Pages를 배포하고 예약, 조회, 변경, 취소를 확인합니다.
 
 ## GitHub Pages
 
