@@ -70,6 +70,7 @@ describe('concurrency guard decisions', () => {
   it('normalizes and validates the existing booking number format', () => {
     expect(normalizeBookingCode(' moon-1029-a7k3q ')).toBe('MOON-1029-A7K3Q');
     expect(isValidBookingCode('MOON-1029-A7K3Q')).toBe(true);
+    expect(isValidBookingCode('MOON-1028-A7K3Q')).toBe(true);
     expect(isValidBookingCode('MOON-1029-A7K3Q9RX')).toBe(false);
     expect(isValidBookingCode('GUIRO-0929-A7K3Q')).toBe(false);
   });

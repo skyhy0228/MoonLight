@@ -56,7 +56,7 @@ service cloud.firestore {
         'cancelledAt', 'modifiedAfterConfirmation'
       ])
         && data.accessKey is string
-        && data.bookingCode.matches('^MOON-1029-[A-Z2-9]{5}$')
+        && data.bookingCode.matches('^MOON-(1028|1029)-[A-Z2-9]{5}$')
         && data.managementCodeHash is string
         && data.representativeName is string
         && data.phone is string
@@ -82,6 +82,7 @@ service cloud.firestore {
       return signedIn()
         && bookingId == request.resource.data.accessKey
         && validBookingData(request.resource.data)
+        && request.resource.data.bookingCode.matches('^MOON-1029-[A-Z2-9]{5}$')
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.bookingStatus == 'submitted'
         && request.resource.data.paymentStatus == 'unverified'

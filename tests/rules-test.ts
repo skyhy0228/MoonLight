@@ -63,6 +63,19 @@ try {
 
   const reservedSlot = await getDoc(slotRef);
   if (reservedSlot.data()?.bookingId !== accessKey) throw new Error('Booking transaction did not reserve slot');
+
+  // Migrated reservations keep the number already given to the visitor.
+  await environment.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), ...eventPath, 'bookings', accessKey), {
+      bookingCode: 'MOON-1028-ABCDE',
+    });
+  });
+  await assertSucceeds(runTransaction(guestDb, async (transaction) => {
+    await transaction.get(bookingRef);
+    transaction.update(bookingRef, { bookingStatus: 'cancelled', cancelledAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    transaction.update(slotRef, { status: 'available', bookingId: null, updatedAt: serverTimestamp() });
+    transaction.delete(lockRef);
+  }));
   console.log('Firestore rules: legacy access, isolation, and MoonLight booking transaction passed.');
 } finally {
   await environment.cleanup();

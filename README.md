@@ -10,6 +10,7 @@
 - 1인당 예약금 1,000원, 예약금 전액 기부
 - 농협 351-0966-6520-73, 이호열
 - 사용자 예약번호 형식: `MOON-1029-XXXXX`
+- 날짜 정정 전에 발급한 예약번호도 그대로 조회·변경·취소할 수 있습니다.
 
 ## 데이터 분리
 
@@ -76,6 +77,13 @@ npm run init:slots
 2. 현재 운영 중인 귀로 규칙을 보존하면서 수정한 MoonLight 규칙을 병합하여 배포합니다.
 3. 29일 행사 경로에 12개 슬롯을 준비하고 기존 예약 및 차단 상태, 접수 상태가 반영되었는지 확인합니다. `init:slots`는 기존 예약을 이관하지 않으므로 예약 확인 없이 새 슬롯을 열지 않습니다.
 4. 준비가 끝난 뒤 `main`에 반영하여 GitHub Pages를 배포하고 예약, 조회, 변경, 취소를 확인합니다.
+
+`scripts/migrateEventDate.py`는 인증된 Google Cloud Shell에서 이 전환을 수행합니다. `--revision`에는 검증한 규칙이 포함된 전체 커밋 SHA를 지정합니다. 기본 실행은 사전 검사만 하며, `--apply`를 붙이면 비공개 백업을 저장하고 이전 행사 접수를 닫은 뒤 규칙을 배포하고 새 경로에 원자적으로 복사합니다. 기존 예약번호·개인정보·입금 상태·감사 기록과 이전 행사 데이터는 보존하며, 목적지에 데이터가 있거나 운영 규칙이 검증한 기준과 다르면 중단합니다.
+
+```bash
+python3 scripts/migrateEventDate.py --revision <reviewed-commit-sha>
+python3 scripts/migrateEventDate.py --revision <reviewed-commit-sha> --apply
+```
 
 ## GitHub Pages
 
