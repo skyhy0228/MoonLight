@@ -42,6 +42,7 @@ class Api:
         request = urllib.request.Request(url, data=data, method=method, headers={
             'Authorization': f'Bearer {self.token}',
             'Content-Type': 'application/json',
+            'x-goog-user-project': PROJECT,
         })
         try:
             with urllib.request.urlopen(request, timeout=90) as response:
